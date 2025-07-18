@@ -1,110 +1,54 @@
-// Wait for DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function () {
-    initializePortfolio();
+// Mobile Menu Toggle
+const hamburger = document.querySelector('.hamburger');
+const mobileMenu = document.querySelector('.mobile-menu');
+const menuOverlay = document.querySelector('.menu-overlay');
+
+hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    mobileMenu.classList.toggle('active');
+    menuOverlay.classList.toggle('active');
 });
 
-function initializePortfolio() {
-    // Initialize mobile menu
-    initializeMobileMenu();
+// Close mobile menu when clicking on overlay
+menuOverlay.addEventListener('click', () => {
+    hamburger.classList.remove('active');
+    mobileMenu.classList.remove('active');
+    menuOverlay.classList.remove('active');
+});
 
-    // Initialize smooth scrolling
-    initializeSmoothScrolling();
-
-    // Initialize home page animations
-    initializeHomeAnimations();
-
-    // Initialize contact form
-    initializeContactForm();
-
-    // Initialize navbar scroll effect
-    initializeNavbarScroll();
-
-    // Initialize section animations
-    initializeSectionAnimations();
-}
-
-// Mobile Menu Toggle
-function initializeMobileMenu() {
-    const hamburger = document.querySelector('.hamburger');
-    const mobileMenu = document.querySelector('.mobile-menu');
-    const menuOverlay = document.querySelector('.menu-overlay');
-
-    if (!hamburger || !mobileMenu || !menuOverlay) return;
-
-    hamburger.addEventListener('click', () => {
-        hamburger.classList.toggle('active');
-        mobileMenu.classList.toggle('active');
-        menuOverlay.classList.toggle('active');
-    });
-
-    // Close mobile menu when clicking on overlay
-    menuOverlay.addEventListener('click', () => {
-        closeMobileMenu();
-    });
-
-    // Close mobile menu when clicking on menu links
-    const mobileMenuLinks = document.querySelectorAll('.mobile-menu a');
-    mobileMenuLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            closeMobileMenu();
-        });
-    });
-
-    function closeMobileMenu() {
+// Close mobile menu when clicking on menu links
+const mobileMenuLinks = document.querySelectorAll('.mobile-menu a');
+mobileMenuLinks.forEach(link => {
+    link.addEventListener('click', () => {
         hamburger.classList.remove('active');
         mobileMenu.classList.remove('active');
         menuOverlay.classList.remove('active');
-    }
-}
-
-// Smooth scrolling for navigation links
-function initializeSmoothScrolling() {
-    const navLinks = document.querySelectorAll('a[href^="#"]');
-
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetId = link.getAttribute('href').substring(1);
-            const targetElement = document.getElementById(targetId);
-
-            if (targetElement) {
-                const headerHeight = document.querySelector('header')?.offsetHeight || 0;
-                const targetPosition = targetElement.offsetTop - headerHeight;
-
-                window.scrollTo({
-                    top: targetPosition,
-                    behavior: 'smooth'
-                });
-            }
-        });
     });
-}
+});
 
-// Home page animations
-function initializeHomeAnimations() {
-    // Inject animation styles
-    injectAnimationStyles();
+// FIXED: Smooth scrolling for ALL navigation links (including the "Get In Touch" button)
+const navLinks = document.querySelectorAll('a[href^="#"]'); // This will select ALL links that start with #
+navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = link.getAttribute('href').substring(1);
+        const targetElement = document.getElementById(targetId);
 
-    // Initialize particle system
-    try {
-        new ParticleSystem();
-    } catch (error) {
-        console.warn('Particle system initialization failed:', error);
-    }
+        if (targetElement) {
+            // Calculate the offset for the fixed header
+            const headerHeight = document.querySelector('header').offsetHeight;
+            const targetPosition = targetElement.offsetTop - headerHeight;
 
-    // Initialize matrix rain
-    try {
-        new MatrixRain();
-    } catch (error) {
-        console.warn('Matrix rain initialization failed:', error);
-    }
+            // Smooth scroll to the target position
+            window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
+            });
+        }
+    });
+});
 
-    // Initialize other animations
-    createFloatingElements();
-    createGlitchEffect();
-    createParallaxEffect();
-    createPulseAnimation();
-}
+// ==================== HOME PAGE ANIMATIONS ====================
 
 // Particle System
 class ParticleSystem {
@@ -112,29 +56,19 @@ class ParticleSystem {
         this.canvas = document.createElement('canvas');
         this.ctx = this.canvas.getContext('2d');
         this.particles = [];
-        this.maxParticles = 50; // Reduced for better performance
-        this.animationId = null;
+        this.maxParticles = 100;
 
-        if (!this.setupCanvas()) return;
-
+        this.setupCanvas();
         this.createParticles();
         this.animate();
 
-        // Add event listeners
-        this.resizeHandler = () => {
-            this.setupCanvas();
-            this.createParticles();
-        };
-
-        this.mouseMoveHandler = (e) => this.handleMouseMove(e);
-
-        window.addEventListener('resize', this.resizeHandler);
-        window.addEventListener('mousemove', this.mouseMoveHandler);
+        window.addEventListener('resize', () => this.setupCanvas());
+        window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
     }
 
     setupCanvas() {
         const homeSection = document.getElementById('home');
-        if (!homeSection) return false;
+        if (!homeSection) return;
 
         this.canvas.width = homeSection.offsetWidth;
         this.canvas.height = homeSection.offsetHeight;
@@ -147,12 +81,9 @@ class ParticleSystem {
         if (!homeSection.querySelector('canvas')) {
             homeSection.appendChild(this.canvas);
         }
-
-        return true;
     }
 
     createParticles() {
-        this.particles = [];
         for (let i = 0; i < this.maxParticles; i++) {
             this.particles.push({
                 x: Math.random() * this.canvas.width,
@@ -167,8 +98,6 @@ class ParticleSystem {
     }
 
     handleMouseMove(e) {
-        if (!this.canvas || !this.particles.length) return;
-
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
@@ -186,8 +115,6 @@ class ParticleSystem {
     }
 
     animate() {
-        if (!this.ctx || !this.canvas) return;
-
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.particles.forEach(particle => {
@@ -208,11 +135,8 @@ class ParticleSystem {
             this.ctx.fillStyle = particle.color;
             this.ctx.fill();
 
-            // Draw connections (limit to improve performance)
-            for (let i = 0; i < Math.min(this.particles.length, 10); i++) {
-                const otherParticle = this.particles[i];
-                if (otherParticle === particle) continue;
-
+            // Draw connections
+            this.particles.forEach(otherParticle => {
                 const dx = particle.x - otherParticle.x;
                 const dy = particle.y - otherParticle.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
@@ -225,22 +149,94 @@ class ParticleSystem {
                     this.ctx.lineWidth = 0.5;
                     this.ctx.stroke();
                 }
-            }
+            });
         });
 
-        this.animationId = requestAnimationFrame(() => this.animate());
+        requestAnimationFrame(() => this.animate());
+    }
+}
+
+// Typing Animation
+class TypingAnimation {
+    constructor(element, texts, speed = 100) {
+        this.element = element;
+        this.texts = texts;
+        this.speed = speed;
+        this.textIndex = 0;
+        this.charIndex = 0;
+        this.isDeleting = false;
+        this.originalText = element.textContent;
+
+        this.type();
     }
 
-    destroy() {
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
+    type() {
+        const currentText = this.texts[this.textIndex];
+
+        if (this.isDeleting) {
+            this.element.textContent = currentText.substring(0, this.charIndex - 1);
+            this.charIndex--;
+        } else {
+            this.element.textContent = currentText.substring(0, this.charIndex + 1);
+            this.charIndex++;
         }
-        window.removeEventListener('resize', this.resizeHandler);
-        window.removeEventListener('mousemove', this.mouseMoveHandler);
-        if (this.canvas && this.canvas.parentNode) {
-            this.canvas.parentNode.removeChild(this.canvas);
+
+        let typeSpeed = this.speed;
+
+        if (this.isDeleting) {
+            typeSpeed /= 2;
         }
+
+        if (!this.isDeleting && this.charIndex === currentText.length) {
+            typeSpeed = 2000;
+            this.isDeleting = true;
+        } else if (this.isDeleting && this.charIndex === 0) {
+            this.isDeleting = false;
+            this.textIndex = (this.textIndex + 1) % this.texts.length;
+            typeSpeed = 500;
+        }
+
+        setTimeout(() => this.type(), typeSpeed);
     }
+}
+
+// Floating Elements Animation
+function createFloatingElements() {
+    const homeSection = document.getElementById('home');
+    if (!homeSection) return;
+
+    const floatingContainer = document.createElement('div');
+    floatingContainer.className = 'floating-elements';
+    floatingContainer.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2;
+    `;
+
+    // Create floating shapes
+    const shapes = ['◆', '●', '▲', '■', '★'];
+
+    for (let i = 0; i < 15; i++) {
+        const shape = document.createElement('div');
+        shape.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+        shape.style.cssText = `
+            position: absolute;
+            color: rgba(0, 255, 136, 0.3);
+            font-size: ${Math.random() * 20 + 10}px;
+            animation: float ${Math.random() * 10 + 10}s infinite linear;
+            left: ${Math.random() * 100}%;
+            top: ${Math.random() * 100}%;
+            transform: rotate(${Math.random() * 360}deg);
+        `;
+
+        floatingContainer.appendChild(shape);
+    }
+
+    homeSection.appendChild(floatingContainer);
 }
 
 // Matrix Rain Effect
@@ -252,24 +248,20 @@ class MatrixRain {
         this.fontSize = 14;
         this.columns = 0;
         this.drops = [];
-        this.animationId = null;
 
-        if (!this.setupCanvas()) return;
-
+        this.setupCanvas();
         this.initDrops();
         this.animate();
 
-        this.resizeHandler = () => {
+        window.addEventListener('resize', () => {
             this.setupCanvas();
             this.initDrops();
-        };
-
-        window.addEventListener('resize', this.resizeHandler);
+        });
     }
 
     setupCanvas() {
         const homeSection = document.getElementById('home');
-        if (!homeSection) return false;
+        if (!homeSection) return;
 
         this.canvas.width = homeSection.offsetWidth;
         this.canvas.height = homeSection.offsetHeight;
@@ -284,8 +276,6 @@ class MatrixRain {
             this.canvas.className = 'matrix-canvas';
             homeSection.appendChild(this.canvas);
         }
-
-        return true;
     }
 
     initDrops() {
@@ -294,8 +284,6 @@ class MatrixRain {
     }
 
     animate() {
-        if (!this.ctx || !this.canvas) return;
-
         this.ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -316,56 +304,8 @@ class MatrixRain {
             this.drops[i]++;
         }
 
-        this.animationId = requestAnimationFrame(() => this.animate());
+        requestAnimationFrame(() => this.animate());
     }
-
-    destroy() {
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-        }
-        window.removeEventListener('resize', this.resizeHandler);
-        if (this.canvas && this.canvas.parentNode) {
-            this.canvas.parentNode.removeChild(this.canvas);
-        }
-    }
-}
-
-// Floating Elements Animation
-function createFloatingElements() {
-    const homeSection = document.getElementById('home');
-    if (!homeSection || homeSection.querySelector('.floating-elements')) return;
-
-    const floatingContainer = document.createElement('div');
-    floatingContainer.className = 'floating-elements';
-    floatingContainer.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 2;
-    `;
-
-    const shapes = ['◆', '●', '▲', '■', '★'];
-
-    for (let i = 0; i < 10; i++) {
-        const shape = document.createElement('div');
-        shape.textContent = shapes[Math.floor(Math.random() * shapes.length)];
-        shape.style.cssText = `
-            position: absolute;
-            color: rgba(0, 255, 136, 0.3);
-            font-size: ${Math.random() * 20 + 10}px;
-            animation: float ${Math.random() * 10 + 10}s infinite linear;
-            left: ${Math.random() * 100}%;
-            top: ${Math.random() * 100}%;
-            transform: rotate(${Math.random() * 360}deg);
-        `;
-
-        floatingContainer.appendChild(shape);
-    }
-
-    homeSection.appendChild(floatingContainer);
 }
 
 // Glitch Effect
@@ -375,7 +315,6 @@ function createGlitchEffect() {
 
     const originalText = homeTitle.textContent;
     const glitchChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-    let glitchInterval;
 
     function glitch() {
         let glitchedText = '';
@@ -396,7 +335,7 @@ function createGlitchEffect() {
         }, 50);
     }
 
-    glitchInterval = setInterval(() => {
+    setInterval(() => {
         if (Math.random() < 0.05) {
             glitch();
         }
@@ -409,7 +348,6 @@ function createParallaxEffect() {
     if (!homeSection) return;
 
     const elements = homeSection.querySelectorAll('h1, p, a');
-    if (!elements.length) return;
 
     homeSection.addEventListener('mousemove', (e) => {
         const rect = homeSection.getBoundingClientRect();
@@ -450,10 +388,7 @@ function createPulseAnimation() {
 
 // CSS Animations (injected dynamically)
 function injectAnimationStyles() {
-    if (document.querySelector('#portfolio-animations')) return;
-
     const style = document.createElement('style');
-    style.id = 'portfolio-animations';
     style.textContent = `
         @keyframes float {
             0% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
@@ -503,188 +438,199 @@ function injectAnimationStyles() {
     document.head.appendChild(style);
 }
 
+// ==================== EXISTING FUNCTIONALITY ====================
+
 // Contact Form Handling
-function initializeContactForm() {
-    const contactForm = document.querySelector('#contact form');
-    if (!contactForm) return;
+const contactForm = document.querySelector('#contact form');
+const submitButton = contactForm.querySelector('button[type="submit"]');
 
-    const submitButton = contactForm.querySelector('button[type="submit"]');
-    if (!submitButton) return;
+// Form validation
+function validateForm(formData) {
+    const errors = [];
 
-    // Form validation
-    function validateForm(formData) {
-        const errors = [];
-
-        if (!formData.name?.trim()) {
-            errors.push('Name is required');
-        }
-
-        if (!formData.email?.trim()) {
-            errors.push('Email is required');
-        } else if (!isValidEmail(formData.email)) {
-            errors.push('Please enter a valid email address');
-        }
-
-        if (!formData.subject?.trim()) {
-            errors.push('Subject is required');
-        }
-
-        if (!formData.message?.trim()) {
-            errors.push('Message is required');
-        }
-
-        return errors;
+    if (!formData.name.trim()) {
+        errors.push('Name is required');
     }
 
-    function isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+    if (!formData.email.trim()) {
+        errors.push('Email is required');
+    } else if (!isValidEmail(formData.email)) {
+        errors.push('Please enter a valid email address');
     }
 
-    // Show notification
-    function showNotification(message, type = 'success') {
-        const existingNotification = document.querySelector('.notification');
-        if (existingNotification) {
-            existingNotification.remove();
-        }
-
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
-            z-index: 1000;
-            max-width: 300px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            ${type === 'success' ? 'background-color: #4CAF50;' : 'background-color: #f44336;'}
-        `;
-        notification.textContent = message;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-        }, 100);
-
-        setTimeout(() => {
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 5000);
+    if (!formData.subject.trim()) {
+        errors.push('Subject is required');
     }
 
-    // Set button loading state
-    function setButtonLoading(loading) {
-        if (loading) {
-            submitButton.disabled = true;
-            submitButton.textContent = 'Sending...';
-            submitButton.style.opacity = '0.7';
-        } else {
-            submitButton.disabled = false;
-            submitButton.textContent = 'Send Message';
-            submitButton.style.opacity = '1';
-        }
+    if (!formData.message.trim()) {
+        errors.push('Message is required');
     }
 
-    // Handle form submission
-    contactForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const formData = {
-            name: contactForm.name?.value || '',
-            email: contactForm.email?.value || '',
-            subject: contactForm.subject?.value || '',
-            message: contactForm.message?.value || ''
-        };
-
-        const errors = validateForm(formData);
-        if (errors.length > 0) {
-            showNotification(errors.join(', '), 'error');
-            return;
-        }
-
-        setButtonLoading(true);
-
-        try {
-            const response = await fetch('https://conta-back.onrender.com/api/contact', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
-
-            if (response.ok) {
-                showNotification('Message sent successfully! Thank you for getting in touch.', 'success');
-                contactForm.reset();
-            } else {
-                const errorData = await response.json().catch(() => ({ message: 'Failed to send message' }));
-                throw new Error(errorData.message || 'Failed to send message');
-            }
-        } catch (error) {
-            console.error('Error sending message:', error);
-            showNotification(
-                error.message || 'Failed to send message. Please try again later.',
-                'error'
-            );
-        } finally {
-            setButtonLoading(false);
-        }
-    });
-
-    // Form input visual feedback
-    const formInputs = contactForm.querySelectorAll('input, textarea');
-    formInputs.forEach(input => {
-        input.addEventListener('focus', () => {
-            input.style.borderColor = '#007bff';
-            input.style.boxShadow = '0 0 0 2px rgba(0, 123, 255, 0.25)';
-        });
-
-        input.addEventListener('blur', () => {
-            input.style.borderColor = '#ddd';
-            input.style.boxShadow = 'none';
-        });
-    });
+    return errors;
 }
+
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Show notification
+function showNotification(message, type = 'success') {
+    const existingNotification = document.querySelector('.notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 5px;
+        color: white;
+        font-weight: bold;
+        z-index: 1000;
+        max-width: 300px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        ${type === 'success' ? 'background-color: #4CAF50;' : 'background-color: #f44336;'}
+    `;
+    notification.textContent = message;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Set button loading state
+function setButtonLoading(loading) {
+    if (loading) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
+        submitButton.style.opacity = '0.7';
+    } else {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Send Message';
+        submitButton.style.opacity = '1';
+    }
+}
+
+// Handle form submission
+contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = {
+        name: contactForm.name.value,
+        email: contactForm.email.value,
+        subject: contactForm.subject.value,
+        message: contactForm.message.value
+    };
+
+    const errors = validateForm(formData);
+    if (errors.length > 0) {
+        showNotification(errors.join(', '), 'error');
+        return;
+    }
+
+    setButtonLoading(true);
+
+    try {
+        const response = await fetch('https://conta-back.onrender.com/api/contact', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            showNotification('Message sent successfully! Thank you for getting in touch.', 'success');
+            contactForm.reset();
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to send message');
+        }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        showNotification(
+            error.message || 'Failed to send message. Please try again later.',
+            'error'
+        );
+    } finally {
+        setButtonLoading(false);
+    }
+});
+
+// Form input visual feedback
+const formInputs = contactForm.querySelectorAll('input, textarea');
+formInputs.forEach(input => {
+    input.addEventListener('focus', () => {
+        input.style.borderColor = '#007bff';
+        input.style.boxShadow = '0 0 0 2px rgba(0, 123, 255, 0.25)';
+    });
+
+    input.addEventListener('blur', () => {
+        input.style.borderColor = '#ddd';
+        input.style.boxShadow = 'none';
+    });
+});
 
 // Navbar scroll effect
-function initializeNavbarScroll() {
+window.addEventListener('scroll', () => {
     const header = document.querySelector('header');
-    if (!header) return;
-
-    let ticking = false;
-
-    function updateNavbar() {
-        if (window.scrollY > 100) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-        ticking = false;
+    if (window.scrollY > 100) {
+        header.style.backgroundColor = 'transparent';
+        header.style.backdropFilter = 'none';
+        header.style.borderBottom = '1px solid transparent';
+    } else {
+        header.style.backgroundColor = 'rgba(10, 10, 10, 0.95)';
+        header.style.backdropFilter = 'blur(10px)';
+        header.style.borderBottom = '1px solid var(--border-color)';
     }
-
-    function requestTick() {
-        if (!ticking) {
-            requestAnimationFrame(updateNavbar);
-            ticking = true;
-        }
-    }
-
-    window.addEventListener('scroll', requestTick);
-}
+});
 
 // Section fade-in animation
-function initializeSectionAnimations() {
+document.addEventListener('DOMContentLoaded', () => {
+    // Inject animation styles
+    injectAnimationStyles();
+
+    // Initialize home page animations
+    new ParticleSystem();
+    new MatrixRain();
+    createFloatingElements();
+    createGlitchEffect();
+    createParallaxEffect();
+    createPulseAnimation();
+
+    // Initialize typing animation for subtitle
+    const subtitle = document.querySelector('#home p');
+    if (subtitle) {
+        const texts = [
+            'Passionate about Building Scalable Systems through Code, Cloud, and Automation.',
+            'Creating Digital Solutions that Make a Difference.',
+            'Full Stack Developer with 5+ Years of Experience.',
+            'Turning Ideas into Reality through Code.'
+        ];
+        // Comment out typing animation to keep original text
+        // new TypingAnimation(subtitle, texts, 50);
+    }
+
+    // Section fade-in observer
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -692,9 +638,6 @@ function initializeSectionAnimations() {
                 entry.target.style.transform = 'translateY(0)';
             }
         });
-    }, {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
     });
 
     const sections = document.querySelectorAll('section:not(#home)');
@@ -704,27 +647,4 @@ function initializeSectionAnimations() {
         section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(section);
     });
-}
-
-// Error handling wrapper
-function safeExecute(fn, errorMessage = 'Error executing function') {
-    try {
-        return fn();
-    } catch (error) {
-        console.warn(`${errorMessage}:`, error);
-        return null;
-    }
-}
-
-// Global error handler
-window.addEventListener('error', (event) => {
-    console.error('Global error:', event.error);
-    // Don't show user-facing errors for non-critical issues
-});
-
-// Unhandled promise rejection handler
-window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason);
-    // Prevent the default behavior (console error)
-    event.preventDefault();
 });
